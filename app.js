@@ -1,101 +1,65 @@
-let tg = window.Telegram.WebApp;
+document.getElementById('task-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const desc = document.getElementById('task-desc').value;
+    const date = document.getElementById('task-date').value;
+    const time = document.getElementById('task-time').value;
+    const taskId = Date.now();
 
-tg.expand();
-
-tg.MainButton.textColor = '#FFFFFF';
-tg.MainButton.color = '#2cab37';
-
-let item = "";
-
-let btn1 = document.getElementById("btn1");
-let btn2 = document.getElementById("btn2");
-let btn3 = document.getElementById("btn3");
-let btn4 = document.getElementById("btn4");
-let btn5 = document.getElementById("btn5");
-let btn6 = document.getElementById("btn6");
-
-btn1.addEventListener("click", function(){
-	if (tg.MainButton.isVisible) {
-		tg.MainButton.hide();
-	}
-	else {
-		tg.MainButton.setText("Вы выбрали товар 1!");
-		item = "1";
-		tg.MainButton.show();
-	}
+    const task = { id: taskId, description: desc, date, time, completed: false };
+    saveTask(task);
+    displayTasks();
 });
 
-btn2.addEventListener("click", function(){
-	if (tg.MainButton.isVisible) {
-		tg.MainButton.hide();
-	}
-	else {
-		tg.MainButton.setText("Вы выбрали товар 2!");
-		item = "2";
-		tg.MainButton.show();
-	}
-});
+function saveTask(task) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    tasks.push(task);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+}
 
-btn3.addEventListener("click", function(){
-	if (tg.MainButton.isVisible) {
-		tg.MainButton.hide();
-	}
-	else {
-		tg.MainButton.setText("Вы выбрали товар 3!");
-		item = "3";
-		tg.MainButton.show();
-	}
-});
+function displayTasks(filter = 'all') {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const taskList = document.getElementById('task-list');
+    taskList.innerHTML = '';
 
-btn4.addEventListener("click", function(){
-	if (tg.MainButton.isVisible) {
-		tg.MainButton.hide();
-	}
-	else {
-		tg.MainButton.setText("Вы выбрали товар 4!");
-		item = "4";
-		tg.MainButton.show();
-	}
-});
+    const filteredTasks = tasks.filter(task => {
+        if (filter === 'all') return true;
+        return filter === 'completed' ? task.completed : !task.completed;
+    });
 
-btn5.addEventListener("click", function(){
-	if (tg.MainButton.isVisible) {
-		tg.MainButton.hide();
-	}
-	else {
-		tg.MainButton.setText("Вы выбрали товар 5!");
-		item = "5";
-		tg.MainButton.show();
-	}
-});
+    filteredTasks.forEach(task => {
+        const taskItem = `<li class="${task.completed ? 'completed' : ''}">
+            ${task.description}, до ${task.date} ${task.time}
+            <button onclick="completeTask(${task.id})">Завершить</button>
+            <button onclick="deleteTask(${task.id})">Удалить</button>
+        </li>`;
+        taskList.innerHTML += taskItem;
+    });
+}
 
-btn6.addEventListener("click", function(){
-	if (tg.MainButton.isVisible) {
-		tg.MainButton.hide();
-	}
-	else {
-		tg.MainButton.setText("Вы выбрали товар 6!");
-		item = "6";
-		tg.MainButton.show();
-	}
-});
+function completeTask(taskId) {
+    const tasks = JSON.parse(localStorage.getItem('tasks'));
+    const updatedTasks = tasks.map(task => {
+        if (task.id === taskId) {
+            task.completed = true;
+        }
+        return task;
+    });
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    displayTasks();
+}
 
+function deleteTask(taskId) {
+    const tasks = JSON.parse(localStorage.getItem('tasks'));
+    const updatedTasks = tasks.filter(task => task.id !== taskId);
+    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+    displayTasks();
+}
 
-Telegram.WebApp.onEvent("mainButtonClicked", function(){
-	tg.sendData(item);
-});
+function filterTasks(filter) {
+    displayTasks(filter);
+}
 
-
-let usercard = document.getElementById("usercard");
-
-let p = document.createElement("p");
-
-p.innerText = `${tg.initDataUnsafe.user.first_name}
-${tg.initDataUnsafe.user.last_name}`;
-
-usercard.appendChild(p);
-
-
+window.onload = displayTasks;
 
 
 
